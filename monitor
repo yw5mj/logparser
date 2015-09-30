@@ -1,0 +1,43 @@
+#! /bin/bash
+# Run log files got from log_teststand.py on cms904usr automatically everyday on 00:10
+monit(){
+    fol=`date +%y%m%d`
+    dir='~/hcal_teststand_scripts/data/ts_904/'$fol
+    loc='/tmp/'$USER'/cms904usr/'$fol
+    wwwd=$HOME'/www/cms904/'$fol
+    mkdir -p $loc
+    sleep 1h
+    echo '    >> handling data for '$fol
+    scp cms904usr:$dir/*.log $loc 2>>$loc/$fol.log
+    ./mkplots $loc 2>>$loc/$fol.log
+    mkdir -p $wwwd
+    cp $loc/*.png $wwwd
+    date>$wwwd/$fol.log
+    grep -v TCanvas $loc/$fol.log>>$wwwd/$fol.log
+    rm -rf $loc
+    echo '    >> finished handling data for '$fol
+}
+
+if [ -z "$CMSSW_BASE" ]
+then
+    cd ~/work/test/CMSSW_7_4_7/src/
+    eval `scramv1 runtime -sh`
+    echo "set CMSSW_BASE to $CMSSW_BASE"
+    cd $OLDPWD
+fi
+sttime=`date -d 23:10 +%s`
+nwtime=`date +%s`
+declare -i sltime=$(($sttime-$nwtime))
+if [ $sltime -gt 0 ]
+then
+    echo "waiting for $sltime seconds..."
+    sleep $sltime
+fi
+date
+echo '>> monitor is now active'
+while :
+do
+    monit &
+    sleep 1d
+done
+	
