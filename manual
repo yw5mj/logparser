@@ -10,6 +10,7 @@ then
     echo "set CMSSW_BASE to $CMSSW_BASE"
     cd $OLDPWD
 fi
+
 manualrun(){
 if [ -z "$1" ]
 then
@@ -17,7 +18,7 @@ then
 else
     fol=$1
 fi
-dir='~/hcal_teststand_scripts/data/ts_904/'$fol
+dir='~/hcal_teststand_scripts/data/ts_904cal/'$fol
 loc='/tmp/'$USER'/cms904usr/'$fol
 wwwd=$HOME'/www/cms904/'$fol
 mkdir -p $loc

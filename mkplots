@@ -105,14 +105,12 @@ def readcurr(cc):
     cc.Print('{0}Curr.png'.format(path))
 
 def adcplt():
-    files=getoutput("grep '^\[' {0}*.log|grep -v \\'".format(path)).split('\n')
-    adcar=[]
+    files=getoutput("grep 'crate,slot' {0}*.log|grep links".format(path)).split('\n')
+    adcar=[(array('d'),array('d'),array('d'),array('d'),array('d')) for i in range(24)]
     linold=[]
-    for i in range(24):
-        adcar.append((array('d'),array('d'),array('d'),array('d'),array('d')))
     for onefile in files:
         onename=onefile.split(":")[0]
-        linnum=eval(onefile.split(":")[1])
+        linnum=eval(onefile.split(":")[-1])
         timest=onename.split('/')[-1][:-4].replace('_',' ')
         if linold!=linnum:
             print >> stderr,'WARNING: active links are {0} at {1}'.format(linnum,timest)
@@ -121,7 +119,7 @@ def adcplt():
             continue
         hm=getoutput('date -d "{0}" +%s'.format(timest[:-2]))
         time=float(hm)+float(timest[-2:])-basetime
-        adcs=eval(getoutput('grep "\[\[" {0}'.format(onename)))
+        adcs=eval(getoutput('grep "crate,slot" {0}|grep meanADC'.format(onename)).split(':')[-1])
         for i in range(len(linnum)):
             adcar[linnum[i]][4].append(time/3600)
             for ch in range(4):

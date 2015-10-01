@@ -2,7 +2,12 @@
 # Run log files got from log_teststand.py on cms904usr automatically everyday on 00:10
 monit(){
     fol=`date +%y%m%d`
-    dir='~/hcal_teststand_scripts/data/ts_904/'$fol
+    if [ -z "$1" ]
+    then
+	dir='~/hcal_teststand_scripts/data/ts_904cal/'$fol
+    else
+	dir='~/hcal_teststand_scripts/data/'$1'/'$fol
+    fi
     loc='/tmp/'$USER'/cms904usr/'$fol
     wwwd=$HOME'/www/cms904/'$fol
     mkdir -p $loc
@@ -37,7 +42,7 @@ date
 echo '>> monitor is now active'
 while :
 do
-    monit &
+    monit $1 &
     sleep 1d
 done
 	
