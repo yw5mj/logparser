@@ -16,7 +16,7 @@ else:
     basetime=1438763742
 
 def getdata(string):
-    adctmps=getoutput("grep 'get {0}' {1}*.log".format(string,path)).split('\n')
+    adctmps=getoutput("grep -H 'get {0}' {1}*.log".format(string,path)).split('\n')
     times=array("d")
     temps=array("d")
     for tmp in adctmps:
@@ -28,7 +28,7 @@ def getdata(string):
         temps.append(float(tmpst))
         times.append(time/3600)
     if len(times)==0:
-        print 'ERROR: {0} has no data'.format(string)
+        print >> stderr, 'ERROR: {0} has no data'.format(string)
         return TGraph()
     adctt=TGraph(len(times),times,temps)
     adctt.SetTitle('{0} vs t;t/h;'.format(string))
@@ -105,7 +105,7 @@ def readcurr(cc):
     cc.Print('{0}Curr.png'.format(path))
 
 def adcplt():
-    files=getoutput("grep 'crate,slot' {0}*.log|grep links".format(path)).split('\n')
+    files=getoutput("grep -H 'crate,slot' {0}*.log|grep links".format(path)).split('\n')
     adcar=[(array('d'),array('d'),array('d'),array('d'),array('d')) for i in range(24)]
     linold=[]
     for onefile in files:
@@ -135,7 +135,7 @@ def adcplt():
     return adccg
 
 def getlinkdata(string,linknum):
-    adctmps=getoutput("grep '{0}' {1}*.log".format(string,path)).split('\n')
+    adctmps=getoutput("grep -H '{0}' {1}*.log".format(string,path)).split('\n')
     times=array("d")
     bada=[]
     for i in range(len(linknum)):
@@ -161,7 +161,7 @@ def getlinkdata(string,linknum):
     return badas
 
 def getlinkFB(string):
-    adctmps=getoutput("grep '{0}' {1}*.log".format(string,path)).split('\n')
+    adctmps=getoutput("grep -H '{0}' {1}*.log".format(string,path)).split('\n')
     times=array("d")
     temps1=array("d")
     temps2=array("d")
