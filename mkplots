@@ -70,10 +70,13 @@ def readvolt(cc):
     label=['HF1-VIN_voltage_f','HF1-3V3_voltage_f','HF1-2V5_voltage_f','HF1-1V5_voltage_f','HF1-1V2_voltage_f']
     leg=TLegend(.8,.8,1,1)
     for i in range(len(label)):
-        volt.append(getdata(label[i]))
-        volt[i].SetLineColor(i+1)
-        volt[i].SetFillColor(0)
-        leg.AddEntry(volt[i],label[i])
+        ovol=getdata(label[i])
+        if ovol.GetN():
+            ovol.SetLineColor(i+1)
+            ovol.SetFillColor(0)
+            leg.AddEntry(ovol,label[i])
+            volt.append(ovol)
+    for i in range(len(volt)):
         if i==0:
             volt[i].SetTitle('voltage vs time;time/h;voltage/V')
             volt[i].SetMinimum(0)
@@ -81,8 +84,9 @@ def readvolt(cc):
             volt[i].Draw("al")
         else:
             volt[i].Draw("same")
-    leg.Draw('same')
-    cc.Print('{0}Volt.png'.format(path))
+    if leg.GetNRows():
+        leg.Draw('same')
+        cc.Print('{0}Volt.png'.format(path))
 
 def readcurr(cc):
     cc.cd()
@@ -90,10 +94,13 @@ def readcurr(cc):
     label=['HF1-VIN_current_f','HF1-3V3_current_f','HF1-2V5_current_f','HF1-1V5_current_f']
     leg=TLegend(.8,.8,1,1)
     for i in range(len(label)):
-        curr.append(getdata(label[i]))
-        curr[i].SetLineColor(i+1)
-        curr[i].SetFillColor(0)
-        leg.AddEntry(curr[i],label[i])
+        ocur=getdata(label[i])
+        if ocur.GetN():
+            ocur.SetLineColor(i+1)
+            ocur.SetFillColor(0)
+            leg.AddEntry(ocur,label[i])
+            curr.append(ocur)
+    for i in range(len(curr)):
         if i==0:
             curr[i].SetTitle('current vs time;time/h;I/A')
             curr[i].SetMinimum(0)
@@ -101,8 +108,9 @@ def readcurr(cc):
             curr[i].Draw("al")
         else:
             curr[i].Draw("same")
-    leg.Draw('same')
-    cc.Print('{0}Curr.png'.format(path))
+    if leg.GetNRows():
+        leg.Draw('same')
+        cc.Print('{0}Curr.png'.format(path))
 
 def adcplt():
     files=getoutput("grep -H 'crate,slot' {0}*.log|grep links".format(path)).split('\n')
