@@ -15,7 +15,7 @@ else:
     path='./'
     basetime=1438763742
 
-def getdata(string):
+def getdata(string,base=10):
     adctmps=getoutput("grep -H 'get {0}' {1}*.log".format(string,path)).split('\n')
     times=array("d")
     temps=array("d")
@@ -25,7 +25,7 @@ def getdata(string):
         tmpst=tmp.split()[-1]
         hm=getoutput('date -d "{0}" +%s'.format(timest[:-2]))
         time=float(hm)+float(timest[-2:])-basetime
-        temps.append(float(tmpst))
+        temps.append(float(tmpst) if base==10 else int(tmpst,base))
         times.append(time/3600)
     if len(times)==0:
         print >> stderr, 'ERROR: {0} has no data'.format(string)
@@ -203,6 +203,25 @@ def getlinkFB(string):
 if __name__=='__main__':
     gROOT.SetBatch()
     c0=TCanvas('c0','c0',600,600)
+    #adc vs time
+    print '\n===reading mean adc'
+    adccg=adcplt()
+    linknum=adccg.keys()
+    for k in linknum:
+        for i in range(4):
+            adccg[k][i].SetMarkerStyle(7)
+            adccg[k][i].Draw('ap')
+            c0.Print("{0}adcplt{1}ch{2}.png".format(path,k,i))
+
+    #fec error vs time
+    print '\n===reading fec error'
+    nglb=['fec1-sfp{0}_prbs_rx_pattern_error_cnt'.format(m+1) for m in range(6)]
+    for l in nglb:
+        h=getdata(l)
+        if h.GetN():
+            h.SetMarkerStyle(7)
+            h.Draw('ap')
+            c0.Print('{0}{1}.png'.format(path,l))
 
     #modes vs time
     print '\n===reading modes'
@@ -254,16 +273,6 @@ if __name__=='__main__':
     pwrbad.SetMarkerStyle(7)
     pwrbad.Draw('ap')
     c0.Print('{0}pwrbad.png'.format(path))
-    #adc vs time
-
-    print '\n===reading mean adc'
-    adccg=adcplt()
-    linknum=adccg.keys()
-    for k in linknum:
-        for i in range(4):
-            adccg[k][i].SetMarkerStyle(7)
-            adccg[k][i].Draw('ap')
-            c0.Print("{0}adcplt{1}ch{2}.png".format(path,k,i))
 
     #bad align vs time
     print '\n===reading bad align'
