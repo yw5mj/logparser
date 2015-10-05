@@ -4,7 +4,7 @@ monit(){
     fol=`date +%y%m%d`
     if [ -z "$1" ]
     then
-	dir='~/hcal_teststand_scripts/data/ts_904cal/'$fol
+	dir='~/hcal_teststand_scripts/data/ts_904/'$fol
     else
 	dir='~/hcal_teststand_scripts/data/'$1'/'$fol
     fi

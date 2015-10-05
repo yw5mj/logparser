@@ -18,7 +18,7 @@ then
 else
     fol=$1
 fi
-dir='~/hcal_teststand_scripts/data/ts_904cal/'$fol
+dir='~/hcal_teststand_scripts/data/ts_904/'$fol
 loc='/tmp/'$USER'/cms904usr/'$fol
 wwwd=$HOME'/www/cms904/'$fol
 mkdir -p $loc
