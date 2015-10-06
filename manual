@@ -22,6 +22,10 @@ dir='~/hcal_teststand_scripts/data/ts_904/'$fol
 loc='/tmp/'$USER'/cms904usr/'$fol
 wwwd=$HOME'/www/cms904/'$fol
 mkdir -p $loc
+if [ -z "$1" ]
+then
+(ssh cms904usr ./start_log.sh) 2>>$loc/$fol.log
+fi
 echo '    >> handling data for '$fol
 scp cms904usr:$dir/*.log $loc >/dev/null 2>>$loc/$fol.log
 if [ "$2" = "-i" ]

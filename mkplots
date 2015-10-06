@@ -36,6 +36,9 @@ def getdata(string,base=10):
 
 def getmode(string):
     li=list(set(getoutput("grep {0} ".format(string)+path+"*.log|awk '{print $2}'").split('\n')))
+    if li==['']:
+        print >> stderr, 'ERROR: {0} has no data'.format(string)
+        return []
     return [(i,getdata(i)) for i in li]
 
 def adcwr(string,maxi,mini):
@@ -165,6 +168,10 @@ def getlinkdata(string,linknums):
                 bada[i].append(float(ba[linknum[i]]))
         badas=[]
         for i in range(len(linknum)):
+            if not len(times):
+                print >>stderr,"ERROR:{0}at link{1},{2} has no data".format(string,linknum[i],k)
+                badas.append(TGraph())                
+                continue
             badas.append(TGraph(len(times),times,bada[i]))
             badas[i].SetTitle('{2}{1} link_{0} vs t;t/h;{1}'.format(linknum[i],string,k))
             badas[i].SetFillColor(0)
@@ -175,6 +182,10 @@ def getlinkFB(string,crsl):
     res={}
     for cs in crsl:
         adctmps=getoutput("grep -H '{0}' {1}*.log|grep '{2}'".format(string,path,cs)).split('\n')
+        if adctmps==['']:
+            print >> stderr, 'ERROR: {0} has no data for {1}'.format(string,cs)
+            res[cs]=[]
+            continue
         times=array("d")
         temps1=array("d")
         temps2=array("d")
@@ -225,7 +236,6 @@ if __name__=='__main__':
             adccg[k][4].Draw('ap')
             c0.Print("{0}c{2}s{3}orbitrate{1}.png".format(path,k,cs[0],cs[1]))
         
-
     #fec error vs time
     print '\n===reading fec error'
     nglb=['fec1-sfp{0}_prbs_rx_pattern_error_cnt'.format(m+1) for m in range(6)]
@@ -287,6 +297,8 @@ if __name__=='__main__':
     badas=getlinkdata('Bad align',linknum)
     for k in linknum.keys():
         for n in range(len(linknum[k])):
+            if not badas[k][n].GetN():
+                continue
             badas[k][n].SetMarkerStyle(7)
             badas[k][n].SetMinimum(0)
             badas[k][n].Draw('ap')
@@ -296,6 +308,8 @@ if __name__=='__main__':
     badas=getlinkdata('Bad Data',linknum)
     for k in linknum.keys():
         for n in range(len(linknum[k])):
+            if not badas[k][n].GetN():
+                continue
             badas[k][n].SetMarkerStyle(7)
             badas[k][n].SetMinimum(0)
             badas[k][n].Draw('ap')
@@ -306,6 +320,7 @@ if __name__=='__main__':
     errinfo=[getlinkFB('BC0 Error',linknum.keys()),getlinkFB('Single Error',linknum.keys()),getlinkFB('Double Error',linknum.keys())]
     for k in linknum.keys():
         for i in range(3):
+            if errinfo[i][k]==[]:continue
             errinfo[i][k][0].Draw('ap')
             errinfo[i][k][1].Draw('samep')
             errinfo[i][k][2].Draw('same')
