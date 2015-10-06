@@ -34,12 +34,12 @@ def getdata(string,base=10):
     adctt.SetTitle('{0} vs t;t/h;'.format(string))
     return adctt
 
-def getmode(string):
+def getmode(string,base=10):
     li=list(set(getoutput("grep {0} ".format(string)+path+"*.log|awk '{print $2}'").split('\n')))
     if li==['']:
         print >> stderr, 'ERROR: {0} has no data'.format(string)
         return []
-    return [(i,getdata(i)) for i in li]
+    return [(i,getdata(i,base)) for i in li]
 
 def adcwr(string,maxi,mini):
     adctt=getmode(string)
@@ -238,13 +238,12 @@ if __name__=='__main__':
         
     #fec error vs time
     print '\n===reading fec error'
-    nglb=['fec1-sfp{0}_prbs_rx_pattern_error_cnt'.format(m+1) for m in range(6)]
-    for l in nglb:
-        h=getdata(l,16)
-        if h.GetN():
-            h.SetMarkerStyle(7)
-            h.Draw('ap')
-            c0.Print('{0}{1}.png'.format(path,l))
+    nglb=getmode('prbs_rx_pattern_error_cnt',16)
+    for h in nglb:
+        if h[1].GetN():
+            h[1].SetMarkerStyle(7)
+            h[1].Draw('ap')
+            c0.Print('{0}{1}.png'.format(path,h[0]))
 
     #modes vs time
     print '\n===reading modes'
