@@ -15,6 +15,7 @@ manualrun(){
 if [ -z "$1" ]
 then
     fol=`date +%y%m%d`
+    logst=`ssh cms904usr bin/stlog 2>&1`
 else
     fol=$1
 fi
@@ -22,10 +23,6 @@ dir='~/hcal_teststand_scripts/data/ts_904/'$fol
 loc='/tmp/'$USER'/cms904usr/'$fol
 wwwd=$HOME'/www/cms904/'$fol
 mkdir -p $loc
-if [ -z "$1" ]
-then
-(ssh cms904usr ./start_log.sh) 2>>$loc/$fol.log
-fi
 echo '    >> handling data for '$fol
 scp cms904usr:$dir/*.log $loc >/dev/null 2>>$loc/$fol.log
 if [ "$2" = "-i" ]
@@ -37,6 +34,7 @@ fi
 mkdir -p $wwwd
 cp $loc/*.png $wwwd
 date>$wwwd/$fol.log
+echo "$logst" >>$wwwd/$fol.log
 grep -v TCanvas $loc/$fol.log|grep -v TGraph >>$wwwd/$fol.log
 rm -rf $loc
 echo '    >> finished handling data for '$fol
