@@ -26,14 +26,15 @@ echo '    >> handling data for '$fol
 scp cms904usr:$dir/*.log $loc >/dev/null 2>>$loc/$fol.log
 if [ "$2" = "-i" ]
 then
-    python -i mkplots $loc
+    python -i ~/logparser/mkplots $loc
 else
-    ./mkplots $loc 2>>$loc/$fol.log
+    ~/logparser/mkplots $loc 2>>$loc/$fol.log
 fi
 mkdir -p $wwwd
 cp $loc/*.png $wwwd
 date>$wwwd/$fol.log
 echo "$logst" >>$wwwd/$fol.log
+echo "$logst"
 grep -v TCanvas $loc/$fol.log|grep -v TGraph>>$wwwd/$fol.log
 rm -rf $loc
 echo '    >> finished handling data for '$fol

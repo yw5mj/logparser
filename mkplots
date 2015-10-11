@@ -220,6 +220,7 @@ def getlinkFB(string,crsl):
 if __name__=='__main__':
     gROOT.SetBatch()
     c0=TCanvas('c0','c0',600,600)
+    
     #adc/orbitrate vs time
     print '\n===reading mean adc'
     crsl=findcs()
@@ -251,8 +252,9 @@ if __name__=='__main__':
     for i in ci:
         i[1].Draw("ap")
         c0.Print('{0}{1}.png'.format(path,i[0]))
-    lt=adcwr('LinkTestMode',1.1,-.1)
+    lt=getmode('LinkTestMode',16)
     for i in lt:
+        i[1].SetMarkerStyle(7)
         i[1].Draw("ap")
         c0.Print('{0}{1}.png'.format(path,i[0]))
 
