@@ -220,7 +220,6 @@ def getlinkFB(string,crsl):
 if __name__=='__main__':
     gROOT.SetBatch()
     c0=TCanvas('c0','c0',600,600)
-    
     #adc/orbitrate vs time
     print '\n===reading mean adc'
     crsl=findcs()
@@ -236,6 +235,19 @@ if __name__=='__main__':
             adccg[k][4].SetMarkerStyle(7)
             adccg[k][4].Draw('ap')
             c0.Print("{0}c{2}s{3}orbitrate{1}.png".format(path,k,cs[0],cs[1]))
+
+    #fec1Err_cnt vs time
+    print '\n===reading fecErr_cnt'
+    dber=getdata('fec1-DbErr_cnt',16)
+    sier=getdata('fec1-SinErr_cnt',16)
+    if dber.GetN():
+        dber.SetMarkerStyle(7)
+        dber.Draw('ap')
+        c0.Print('{0}fec1-DbErr_cnt.png'.format(path))
+    if sier.GetN():
+        sier.SetMarkerStyle(7)
+        sier.Draw('ap')
+        c0.Print('{0}fec1-SinErr_cnt.png'.format(path))
         
     #fec error vs time
     print '\n===reading fec error'

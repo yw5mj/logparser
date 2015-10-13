@@ -9,7 +9,18 @@ then
     echo "set CMSSW_BASE to $CMSSW_BASE"
     cd $OLDPWD
 fi
-
+ogfile(){
+mkdir -p links
+mkdir -p errors
+mkdir -p temperature
+mkdir -p modes
+mkdir -p powers
+mv *adcplt*.png *orbitrate*.png links  2>/dev/null
+mv bad*.png *Err*.png *error*.png errors 2>/dev/null
+mv *_f.png temperature 2>/dev/null
+mv *ode.png modes 2>/dev/null
+mv *vst.png *bkp_pwr_bad.png powers  2>/dev/null
+}
 manualrun(){
 if [ -z "$1" ]
 then
@@ -37,6 +48,7 @@ echo "$logst" >>$wwwd/$fol.log
 echo "$logst"
 grep -v TCanvas $loc/$fol.log|grep -v TGraph>>$wwwd/$fol.log
 rm -rf $loc
+(cd $wwwd;ogfile)
 echo '    >> finished handling data for '$fol
 }
 
