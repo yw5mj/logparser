@@ -1,0 +1,132 @@
+#! /bin/env python
+from commands import getoutput
+from sys import argv
+import ast
+class check:
+    def __init__(self,level=0,result=''):
+        self.level=level # -1:bad 0:no_data 1:good
+        self.result=result
+    def __nonzero__(self):
+        return True if self.level==1 else False
+    def __str__(self):
+        return self.result
+
+def find_diff(case1,case2):
+    if (case1 and case2) or case1.result==case2.result:
+        return ''
+    outnum=case1.level*case2.level
+    if outnum:
+        return "status changed: from {0} to {1}".format(case1,case2)
+    else:
+        return "ERROR: NO DATA"
+
+def parse_log(log_raw):
+	log_parsed = {}
+	sections = log_raw.split("%%")[1:]
+	for section in sections:
+		lines = section.split("\n")
+		log_parsed[lines[0].lower().strip()] = {
+			"registers": {},
+			"lines": [line for line in lines[1:] if line],
+		}
+	for section, values in log_parsed.iteritems():
+		for value in values["lines"]:
+			if "->" in value:
+				pieces = value.split(" -> ")
+				values["registers"][pieces[0].strip()] = pieces[1].strip()
+        if "power" in log_parsed.keys():
+            log_parsed['power']['suply']={}
+            if log_parsed['power']['lines']:
+                log_parsed['power']['suply']['HF_V']=float(log_parsed['power']["lines"][0].split()[1]) if 'HF ' in log_parsed['power']["lines"][0] else 0
+                log_parsed['power']['suply']['HF_I']=float(log_parsed['power']["lines"][1].split()[1]) if 'HF ' in log_parsed['power']["lines"][0] else 0
+                log_parsed['power']['suply']['HE_V']=float(log_parsed['power']["lines"][2].split()[1]) if 'HE ' in log_parsed['power']["lines"][0] else 0
+                log_parsed['power']['suply']['HE_I']=float(log_parsed['power']["lines"][3].split()[1]) if 'HE ' in log_parsed['power']["lines"][0] else 0
+	if "links" in log_parsed.keys():
+		if log_parsed["links"]:
+			log_parsed["links"]["links"] = ast.literal_eval(log_parsed["links"]["lines"][0])
+			log_parsed["links"]["orbits"] = ast.literal_eval(log_parsed["links"]["lines"][1])
+			log_parsed["links"]["adc"] = ast.literal_eval(log_parsed["links"]["lines"][2])
+                        log_parsed["links"]["BadData"] = [i.split()[2:] for i in log_parsed["links"]["lines"] if 'Bad Data' in i ]
+                        log_parsed["links"]["BadAlign"] = [i.split()[2:] for i in log_parsed["links"]["lines"] if 'Bad align' in i ]
+	return log_parsed
+
+def check_orbit(parsed):
+    if not 'links' in parsed.keys():return check()
+    lst=parsed["links"]["orbits"]
+    if not lst:    return check()
+    if max(lst)>12 or min(lst)<11: return check(-1,str(lst))
+    return check(1,str(lst))
+def check_baddata(parsed):
+    if not 'links' in parsed.keys():return check()
+    lst=parsed['links']['BadData']
+    if not lst: return check()
+    return check(-1,str([int(lst[0][i]) for i in range(len(lst[0])) if i!=6]))
+def check_badalign(parsed):
+    if not 'links' in parsed.keys():return check()
+    lst=parsed['links']['BadAlign']
+    if not lst: return check()
+    return check(-1,str([int(lst[0][i]) for i in range(len(lst[0])) if i!=6]))
+def check_reg(parsed,reg,hexa=0,k='registers'):
+    if not k in parsed.keys():return check()
+    if not reg in parsed[k]['registers'].keys():return check()
+    ch=check(-1,parsed[k]['registers'][reg])
+    if 'ERROR' in ch.result:return check(0,ch.result)
+    if hexa: ch.result+='({0} in Dec)'.format(int(ch.result,16))
+    return ch
+def check_sfp1_prbs_rx_pattern_error_cnt(parsed): return check_reg(parsed,'get fec1-sfp1_prbs_rx_pattern_error_cnt',1)
+def check_sfp1_prbs_rx_bitwise_error_cnt(parsed): return check_reg(parsed,'get fec1-sfp1_prbs_rx_bitwise_error_cnt',1)
+def check_sfp1_rxlos_counter(parsed): return check_reg(parsed,'get fec1-sfp1_rxlos_counter')
+def check_mezz_ERROR_COUNT(parsed): return check_reg(parsed,'get HF1-mezz_ERROR_COUNT',1)
+sepa='\n'+'='*100+'\n'
+
+def check_err(psd,func,namestr=''):
+    print '\n>> reading',namestr
+    Outt=namestr+" Summary"+sepa
+    chcks=[]
+    for s in psd:
+        ck=func(s[1])
+        if ck.level: 
+            chcks.append((s[0],ck))
+        else: 
+            print 'WARNING:',s[0],'has',ck if ck.result else 'no data','for',namestr
+    if not len(chcks):
+        print "\nERROR: NO DATA FOR",namestr.upper()
+        return ''
+    prev=chcks[0]
+    for i in chcks:
+        pres=i
+        mes=find_diff(prev[1],pres[1])
+        if mes:
+            Outt+= "\nAt {0}\n{1} {2}\n".format(pres[0],namestr,mes)
+        prev=pres
+    return Outt+sepa
+
+if __name__=='__main__':
+    funs={
+        'Orbit Rate':check_orbit,
+        'Bad Data':check_baddata,
+        'Bad Align':check_badalign,
+        'fec1-sfp1_prbs_rx_pattern_error_cnt':check_sfp1_prbs_rx_pattern_error_cnt,
+        'fec1-sfp1_prbs_rx_bitwise_error_cnt':check_sfp1_prbs_rx_bitwise_error_cnt,
+        'fec1-sfp1_rxlos_counter':check_sfp1_rxlos_counter,
+        'HF1-mezz_ERROR_COUNT':check_mezz_ERROR_COUNT
+        }
+
+    path=argv[1] if argv[1][-1]=='/' else argv[1]+'/'
+    files=getoutput('ls {0}*.log 2>/dev/null'.format(path)).split('\n')
+    if files==['']:
+        print "ERROR: no log files found"
+        exit()
+    psd=[(f.split('/')[-1].strip(".log"),parse_log(open(f).read())) for f in files]
+    Outt=sepa
+    for i in funs.keys(): Outt+=check_err(psd,funs[i],i)
+    try:
+        open(path+'summary.txt','w').write(Outt)
+    except:
+        pass
+    else:
+        print '\nFile:',path+'summary.txt has been created.'
+    yn=raw_input("Print summary on screen?(y/n): ")
+    if yn=='y':
+        print Outt
+
