@@ -123,10 +123,10 @@ if __name__=='__main__':
     try:
         open(path+'summary.txt','w').write(Outt)
     except:
-        pass
+        yn=raw_input("\nPrint summary on screen?(y/n): ")
+        if yn=='y':
+            print Outt
     else:
         print '\nFile:',path+'summary.txt has been created.'
-    yn=raw_input("Print summary on screen?(y/n): ")
-    if yn=='y':
-        print Outt
+
 
