@@ -1,0 +1,15 @@
+#! /bin/bash
+if [ -z "$1" ]|| [ -z "$2" ]
+then
+    echo Argument error >&2
+    exit
+fi
+declare -i st=$1
+declare -i ed=$2
+while [ $st -le $ed ]
+do
+    echo handling $st
+    cp $st/*.log 151125
+#    scp -r cms904usr:/nfshome0/yanchu/hcal_teststand_scripts/data/ts_904/$st . >/dev/null 
+    st=$(($st+1))
+done
